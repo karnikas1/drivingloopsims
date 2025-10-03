@@ -14,4 +14,4 @@ B) Adaptive = target decel that fades at low speed (smoother).
 	• Simple plant: axle torque → accel with drag + rolling, good enough to compare ideas.
 	• Energy tally: integrates recovered kJ so I can A/B tunes.
 	• Plots/diags: speed/torque/energy, limiter “what’s binding,” and pedal-map speed slices.
-Why: lets me tune pedal feel + safety limits in software before touching hardware.<img width="912" height="314" alt="image" src="https://github.com/user-attachments/assets/0f799837-bd82-40b7-8013-d5b63d4b70b6" />
+Why: lets me tune pedal feel + safety limits in software before touching hardware.
