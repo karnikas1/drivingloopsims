@@ -1,17 +1,14 @@
 # drivingloopsims
 The intent behind this repo is sim different driving loop algorithms for a FSAE EV car.
 
-Here’s my quick list of what the driving-loop sims cover (in my words):
-	• Pedal → torque map with speed-based ceiling + curve so tip-in feels sane.
-	• Two OPD flavors:
-A) Linear = fixed regen vs lift (simple, strongest).
-B) Adaptive = target decel that fades at low speed (smoother).
-	• Regen gate w/ hysteresis: no regen above X% throttle; comes back when I fully lift.
-	• Paddles: tweak regen strength and early-lift feel on the fly.
-	• Limit stack: min(P/ω, DC V·I/ω, μFzR) then multiply soft derates (temp/SOC/track).
-	• Temp derate block: filter → ramp → latch → hard cut, with slow recovery so no torque ripple.
-	• Slip guard: kills regen if slip goes past a threshold.
-	• Simple plant: axle torque → accel with drag + rolling, good enough to compare ideas.
-	• Energy tally: integrates recovered kJ so I can A/B tunes.
-	• Plots/diags: speed/torque/energy, limiter “what’s binding,” and pedal-map speed slices.
-Why: lets me tune pedal feel + safety limits in software before touching hardware.
+What is going on here? 
+- Pedal and torque map with speed based limits
+- One Pedal Drive: Linear (fixed regen v lift) and Adpative (target decel that fades at low speeds)
+- Regen gate with hysteresis: no regen above X% throttle, can come back when you lift foot
+- Paddles should tweak regen, early lift to feel it on da fly
+- Limit Stacks (i'll let u read that for urself)
+- Temp Derate whihc filters, latches, and cuts values. slow recovery so we don't have that torque ripple
+- Slip Guard to kill regen if we slippin
+- Plant is torque then accel with drag then roll
+- Energy Tally for recovery
+- Plot stuff 
