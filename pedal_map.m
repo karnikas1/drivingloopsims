@@ -1,0 +1,168 @@
+function T = pedal_map(pedal, modeParams, T_drive_cap)
+% Map pedal% to actual torque using a chosen map shape.
+% Inputs:
+%   pedal         : scalar in [0..1]
+%   modeParams    : struct with fields
+%       .type        : 'linear' | 'adaptive' | 'power' | 'smoothstep' | 'bezier'
+%       .pedal_gain  : scalar gain (default 1.0)
+%       .v           : vehicle speed [m/s] (used by 'adaptive')
+%       .curve_s     : exponent for 'power'
+%       .bezier      : 2x2 control points [c1x c1y; c2x c2y]
+%       .deadband    : optional deadband on pedal (0..1), default 0
+%       .coast       : struct with coast params (if used)
+%   T_drive_cap   : available positive torque cap (Nm) for drive side
+%
+% Output:
+%   T             : wheel torque command (Nm), >= 0 (drive side)
+
+% defaults
+if ~isfield(modeParams,'type'),       modeParams.type       = 'linear'; end
+if ~isfield(modeParams,'pedal_gain'), modeParams.pedal_gain = 1.0;      end
+if ~isfield(modeParams,'v'),          modeParams.v          = 0;        end
+if ~isfield(modeParams,'curve_s'),    modeParams.curve_s    = 1.0;      end
+if ~isfield(modeParams,'deadband'),   modeParams.deadband   = 0.0;      end
+
+% deadband on pedal
+p = max(0, (pedal - modeParams.deadband) / max(1e-6, 1 - modeParams.deadband));
+p = min(1, p);
+
+% choose map (produce alpha in 0..inf, then we clamp/scale once at end)
+switch lower(modeParams.type)
+
+  case 'linear'
+    alpha = modeParams.pedal_gain * p;
+
+  case 'adaptive'
+    % fade with speed (softer at low speed)
+    v     = modeParams.v;
+    vfade = 5;                                     % tune or expose if needed
+    %fade  = min(1, v / vfade);
+    %alpha = modeParams.pedal_gain * p * fade;      % >=0 for drive side
+
+    % NEW: exact fade form v/(v + v_fade)
+    fade  = v ./ (v + modeParams.v_fade);
+    fade  = min(max(fade,0),1);              % clamp safety
+    alpha = modeParams.pedal_gain * p .* fade;
+
+
+    % blended 0-torque coast band (optional)
+    if isfield(modeParams,'coast') && modeParams.coast.enable
+        pad_lo = modeParams.coast.pedal_pad0;
+        pad_hi = modeParams.coast.pedal_pad1;
+        vblend = max(1e-6, modeParams.coast.v_blend);
+        pad    = pad_lo + (pad_hi - pad_lo) * (v / (v + vblend));  % half-width
+
+        efrac  = max(0, min(1, modeParams.coast.edge_soft));       % blend thickness
+        a0     = max(0, pad - efrac*pad);
+        a1     = pad + efrac*pad;
+
+        mag    = alpha;                     % alpha >= 0
+        s      = smoothstep(mag, a0, a1);   % 0 inside band → 1 outside (C^1)
+        alpha  = s .* mag;                  % suppress to ~0 inside band
+    end
+
+  case 'power'
+    s     = max(0.1, modeParams.curve_s);   % s>1 softer, s<1 snappier
+    alpha = modeParams.pedal_gain * (p.^s);
+
+  case 'smoothstep'
+    sm    = 3*p.^2 - 2*p.^3;                % gentle start/finish
+    alpha = modeParams.pedal_gain * sm;
+
+  case 'bezier'
+    if ~isfield(modeParams,'bezier') || ~isequal(size(modeParams.bezier),[2 2])
+        error('Bezier map requires modeParams.bezier = [c1x c1y; c2x c2y].');
+    end
+    c1 = modeParams.bezier(1,:);  c2 = modeParams.bezier(2,:);
+    t  = p;
+    B0 = (1-t).^3; B1 = 3*(1-t).^2.*t; B2 = 3*(1-t).*(t.^2); B3 = t.^3;
+    y  = B0*0 + B1*c1(2) + B2*c2(2) + B3*1;   % y in [0..1]
+    alpha = modeParams.pedal_gain * y;
+
+  otherwise
+    error('Unknown pedal map type: %s', modeParams.type);
+end
+
+% clamp and scale by available drive cap (do this ONCE, for all types)
+alpha = max(0, alpha);
+T     = min(alpha, 1) * T_drive_cap;
+
+end
+
+function y = smoothstep(x, x0, x1)
+% 0 below x0, 1 above x1, cubic in-between (monotonic, C^1 continuous)
+    if x1 <= x0, y = double(x >= x0); return; end
+    t = (x - x0) / (x1 - x0);
+    t = max(0, min(1, t));
+    y = t.*t.*(3 - 2*t);
+end
+
+
+
+%testing
+% clear
+% clear functions
+% clear; close all; clear functions
+% P = params_default();
+% P.Mode.accel.type       = 'linear';
+% P.Mode.accel.pedal_gain = 1.0;
+% pedal_map_sweep(P,'accel',[10 40 80], true,  true);
+% P.Mode.accel.pedal_gain = 1.5;
+% pedal_map_sweep(P,'accel',[10 40 80], true,  true);
+% P.Mode.accel.type       = 'adaptive';
+% P.Mode.accel.pedal_gain = 1.0;
+% pedal_map_sweep(P,'accel',[10 40 80], true,  true);
+% P.Mode.accel.type       = 'adaptive';
+% P.Mode.accel.pedal_gain = 1.0;
+% pedal_map_sweep(P,'accel',[10 40 80],true);
+% P.Mode.accel.type       = 'adaptive';
+% P.Mode.accel.pedal_gain = 1.5;
+% pedal_map_sweep(P,'accel',[10 40 80],true);
+% P.Mode.accel.type       = 'power';
+% P.Mode.accel.curve_s    = 1.7;          % try 1.3 / 1.7 / 2.2
+% P.Mode.accel.pedal_gain = 1.0;
+% pedal_map_sweep(P,'accel',[10 40 80], false, true);  % map only
+% pedal_map_sweep(P,'accel',[10 40 80], true,  true);  % map + caps
+% P.Mode.accel.type       = 'power';
+% P.Mode.accel.curve_s    = 1.3;          % try 1.3 / 1.7 / 2.2
+% P.Mode.accel.pedal_gain = 1.0;
+% pedal_map_sweep(P,'accel',[10 40 80], false, true);  % map only
+% pedal_map_sweep(P,'accel',[10 40 80], true,  true);  % map + caps
+% P.Mode.accel.type       = 'power';
+% P.Mode.accel.curve_s    = 2.2;          % try 1.3 / 1.7 / 2.2
+% P.Mode.accel.pedal_gain = 1.0;
+% pedal_map_sweep(P,'accel',[10 40 80], false, true);  % map only
+% pedal_map_sweep(P,'accel',[10 40 80], true,  true);  % map + caps
+% P.Mode.accel.type       = 'smoothstep';
+% P.Mode.accel.pedal_gain = 1.0;
+% pedal_map_sweep(P,'accel',[10 40 80], false, true);
+% P.Mode.accel.type       = 'smoothstep';
+% P.Mode.accel.pedal_gain = 1.5;
+% pedal_map_sweep(P,'accel',[10 40 80], false, true);
+% P.Mode.accel.type       = 'bezier';
+% P.Mode.accel.bezier     = [0.25 0.85; 0.70 0.95];    % [c1x c1y; c2x c2y], in [0,1]
+% P.Mode.accel.pedal_gain = 1.0;
+% pedal_map_sweep(P,'accel',[10 40 80], false, true);
+% P.Mode.accel.type       = 'bezier';
+% P.Mode.accel.bezier     = [0.25 0.85; 0.70 0.95];    % [c1x c1y; c2x c2y], in [0,1]
+% P.Mode.accel.pedal_gain = 1.5;
+% pedal_map_sweep(P,'accel',[10 40 80], false, true);
+
+
+% clear; close all; clc;
+% P = params_default();
+% P.opd.coast.enable = true;
+% speeds = [10 40 80];
+% 
+% for trial = 1:11
+%     fprintf('Running trial %d...\n', trial);
+%     close all;  % keep workspace clean
+% 
+%     % --- set up params per trial (as before) ---
+%     % e.g., P.Mode.accel.type = 'adaptive'; P.Mode.accel.pedal_gain = 1.0;
+% 
+%     pedal_map_sweep(P,'accel',speeds,true,true);
+% 
+%     % save each automatically
+%     saveas(gcf, sprintf('trial_%02d.png', trial));
+% end
