@@ -1,5 +1,5 @@
 function plotResults(out,titleStr)
-% plot requested vs commanded torque
+%% Plot Results: plot the requested v commanded torque
 figure; hold on;
 plot([out.T_req],'--','DisplayName','Torque req');
 plot([out.T_cmd],'-','DisplayName','Torque cmd');

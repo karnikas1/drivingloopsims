@@ -1,6 +1,8 @@
 function T_out = tc_trim(T_in, u, P, mode)
-% Pick which TC to use: P or Fuzzy. Mode override beats global.
-% Usage from run_driving_loop:  tc_trim(T_req, u, P, mode)
+%% Traction Control Trim: pick which controller to use
+% P or Fuzzy. Mode override beats global.
+% Usage from run_driving_loop:  
+% tc_trim(T_req, u, P, mode)
 
 % default = global setting
 tc_type = 'p';
@@ -22,7 +24,7 @@ switch tc_type
     case {'fuzzy','fz'}
         T_out = tc_trim_fuzzy(T_in, u, P);
     case {'off','none'}
-        T_out = T_in;                 % no TC
+        T_out = T_in; % no TC
     otherwise
         % unknown type -> be safe, apply P
         T_out = tc_trim_p(T_in, u, P);

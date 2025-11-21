@@ -1,11 +1,11 @@
 function plot_caps_stack_regen(results, varargin)
-% Combined REGEN-side torque caps for all modes (stacked subplots).
-% Works with:
-%   plot_caps_stack_regen(results)                      % accel/autoX/enduro
-%   plot_caps_stack_regen(results,'accel','autoX')      % choose order
-%   plot_caps_stack_regen(results.autoX,'autoX')        % single mode
+%% Plot Caps Stack Regen: combined REGEN-side torque caps for all modes (stacked subplots).
+%% Works with:
+%   plot_caps_stack_regen(results) % accel/autoX/enduro
+%   plot_caps_stack_regen(results,'accel','autoX') % choose order
+%   plot_caps_stack_regen(results.autoX,'autoX') % single mode
 
-% -- detect input type (results struct vs single out-array)
+% detect input type (results struct vs single out-array)
 is_single_mode = isstruct(results) && isfield(results,'T_cmd') && ~isfield(results,'accel');
 if is_single_mode
     dataStruct.single = results;
@@ -84,7 +84,7 @@ for i = 1:numel(order)
 end
 end
 
-% ----- helpers -----
+% helpers
 function patch_band(ax, x, y0, y1, col, name)
 % works for positive or negative y1; fills between y0 and y1
 xx = [x, fliplr(x)];

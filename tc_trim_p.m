@@ -1,5 +1,6 @@
 function T_out = tc_trim_p(T_in, u, P)
-% slip = (ωR - v)/v; trim torque if |slip| above target (simple P)
+%% Tc_Trim_P: P Controller should have agressive step reduction which is faster but harsh 
+% slip = (wR - v)/v; trim torque if |slip| above target (simple P)
 v_est   = max(u.v, 0.1);
 omega_w = mean(u.wheelSpeeds);
 v_wheel = omega_w * P.Vehicle.r_wheel;

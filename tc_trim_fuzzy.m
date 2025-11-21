@@ -1,5 +1,5 @@
 function T_out = tc_trim_fuzzy(T_in, u, P)
-% Tiny fuzzy TC:
+%% Tiny fuzzy TC: should have smoother torque transition and less ocsillation
 % Inputs: slip error e = |slip|-target; slip rate r = d|e|/dt (discrete)
 % Output: trim factor f∈[0..1] multiplying T_in.
 
@@ -50,10 +50,14 @@ end
 
 function m = tri(x, a, b, c)
 % triangular membership
-if x<=a || x>=c, m=0;
-elseif x==b,     m=1;
-elseif x<b,      m=(x-a)/(b-a);
-else             m=(c-x)/(c-b);
-end
+    if x<=a || x>=c
+      m=0;
+    elseif x==b     
+        m=1;
+    elseif x<b      
+        m=(x-a)/(b-a);
+    else             
+        m=(c-x)/(c-b);
+    end
 end
 

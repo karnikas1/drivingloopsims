@@ -1,6 +1,6 @@
 function plot_caps_stack(results, varargin)
-% Combined drive-side torque cap visualization for all modes
-% To run:
+%% Plot Caps Stack: combined drive-side torque cap visualization for all modes
+%% To run:
 %   plot_caps_stack(results)
 %   plot_caps_stack(results, 'accel','autoX','enduro')
 %   plot_caps_stack(results.accel, 'accel')   % also works for single mode

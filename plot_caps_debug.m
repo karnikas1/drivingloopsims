@@ -1,6 +1,6 @@
 function plot_caps_debug(out, tag)
-% Plot which cap limits torque + show derates & battery behavior.
-% To run:
+%% Plot which cap limits torque + show derates & battery behavior.
+%% To run:
 %   plot_caps_debug(results.autoX,'autoX')
 
 if nargin<2, tag = ''; end

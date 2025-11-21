@@ -1,10 +1,11 @@
 function plot_speed_slice_pedal_maps()
+%% Plot Speed Slice Pedal Maps: plot stuff
 P = params_default();
 
 % Speeds to slice (m/s)
-v_list = [10 20 30 40] / 3.6;     % 10..40 km/h for visuals
+v_list = [10 20 30 40] / 3.6; % 10..40 km/h for visuals
 pedal = linspace(0,1,101);
-lift  = linspace(0,1,101);        % below deadband, for regen
+lift  = linspace(0,1,101); % below deadband, for regen
 
 % drive map (torque limited by motor curve & power)
 driveT = zeros(numel(v_list), numel(pedal));
@@ -28,10 +29,10 @@ for i = 1:numel(v_list)
     regenT(i,:) = - T_reg_lim .* (lift) .* fade;
 end
 
-% plot
+%% plot
 figure('Name','Speed-slice pedal maps'); tiledlayout(2,1,'TileSpacing','compact');
 
-% top: drive map
+%% top: drive map
 nexttile; hold on; lw=1.6;
 for i=1:numel(v_list)
     plot(100*pedal, driveT(i,:), 'LineWidth', lw, 'DisplayName', sprintf('v = %d km/h', round(v_list(i)*3.6)));
@@ -39,7 +40,7 @@ end
 xlabel('Accelerator pedal p [%]'); ylabel('Drive torque T [Nm]');
 title('Drive map: T_d(p,v) with torque/power caps'); grid on; legend('Location','southeast');
 
-% bottom: adaptive OPD lift then regen torque
+%% bottom: adaptive OPD lift then regen torque
 nexttile; hold on;
 for i=1:numel(v_list)
     plot(100*lift, regenT(i,:), 'LineWidth', lw, 'DisplayName', sprintf('v = %d km/h', round(v_list(i)*3.6)));

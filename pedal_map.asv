@@ -107,7 +107,7 @@ end
 
 
 
-%testing script
+%testing
 % clear
 % clear functions
 % clear; close all; clear functions

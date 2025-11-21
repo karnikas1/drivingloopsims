@@ -22,7 +22,7 @@ TreqB_log = zeros(1,n);
 capsB     = struct('speed',zeros(1,n),'dc',zeros(1,n),'mu',zeros(1,n), ...
                    'phys',zeros(1,n),'final',zeros(1,n));
 
-% --- Main loop
+% Main loop
 for k = 2:n
     vA = R1.v(k-1);  vB = R2.v(k-1);
 

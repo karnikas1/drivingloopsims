@@ -2,15 +2,14 @@
 clear; close all; clc;
 
 P = params_default();
-P.Mode.accel.OPD_enable = true;   % turn on coast
-P.Mode.accel.OPD_type = "linearOPD";   % or adaptiveOPD if you want
-P.Mode.accel.coast_width = 0.10;  % example neutral zone width
-P.Mode.accel.v_fade = 6;   % [m/s] speed scale for adaptive fade (tune as needed)
+P.Mode.accel.OPD_enable = true; % turn on coast
+P.Mode.accel.OPD_type = "linearOPD"; % or adaptiveOPD if you want
+P.Mode.accel.coast_width = 0.10; % example neutral zone width
+P.Mode.accel.v_fade = 6; % [m/s] speed scale for adaptive fade (tune as needed)
 
+speeds = [10 40 80]; % km/h
 
-speeds = [10 40 80];           % km/h
-
-%% Trial definitions (same as before)
+%% Trials for all runs
 trials = {
     'linear',     1.0, NaN, NaN;   % 1
     'linear',     1.5, NaN, NaN;   % 2
@@ -41,10 +40,10 @@ for i = 1:size(trials,1)
 
     % keep workspace clean & auto-save figure
     close all;
- %   pedal_map_sweep(P,'accel',speeds,true,true);
-  %  saveas(gcf, sprintf('trial_%02d_coast.png', i));
+    % pedal_map_sweep(P,'accel',speeds,true,true);
+    % saveas(gcf, sprintf('trial_%02d_coast.png', i));
 
-        % Plot sweep
+    % Plot sweep
     pedal_map_sweep(P, "accel", speeds, true, true);
     sgtitle(sprintf('Trial %02d – %s (Kp=%.1f)', i, type, kp));
 
